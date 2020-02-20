@@ -1,0 +1,63 @@
+plugins {
+    id 'org.springframework.boot' version '2.2.2.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+    id 'java'
+    id 'com.moowork.node' version '1.3.1'
+    id 'com.google.cloud.tools.jib' version '2.0.0'
+}
+
+group = 'jp.gr.java_conf.uzresk.samples'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+jib {
+    to {
+        image = "${ACR_NAME}.azurecr.io/web:${ACR_VERSION}"
+        auth {
+            username = "${ACR_NAME}"
+            password = "${ACR_PASSWORD}"
+        }
+    }
+}
+
+bootJar {
+    mainClassName = 'jp.gr.java_conf.uzresk.samples.springbootreact.Application'
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+//    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // https://mvnrepository.com/artifact/org.projectlombok/lombok
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+    // https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt
+    compile group: 'io.jsonwebtoken', name: 'jjwt', version: '0.9.1'
+    // https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
+    compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.2.4'
+    testCompileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+    testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+    testImplementation 'org.springframework.security:spring-security-test'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+
+task buildReact(type: YarnTask) {
+    execOverrides {
+        it.workingDir = './frontend'
+    }
+    args = ['build']
+}
+
+compileJava.dependsOn buildReact
